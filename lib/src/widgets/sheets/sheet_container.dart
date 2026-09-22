@@ -1,0 +1,94 @@
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppSheetContainer extends StatelessWidget {
+  final Widget? child;
+  final double? height;
+  final List<Widget> children;
+  final ScrollController? controller;
+  final EdgeInsetsGeometry? padding;
+  final BorderRadiusGeometry? borderRadius;
+  final bool showDragHandle, expand, bottomSafeArea, usePaddingBottom;
+  final ScrollPhysics? physics;
+  final Color? color;
+
+  const AppSheetContainer({
+    super.key,
+    this.child,
+    this.height,
+    this.padding,
+    this.controller,
+    this.children = const [],
+    this.showDragHandle = true,
+    this.expand = false,
+    this.physics,
+    this.color,
+    this.bottomSafeArea = true,
+    this.usePaddingBottom = true,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      decoration: BoxDecoration(color: color ?? AppColors.background),
+      child: SafeArea(
+        top: false,
+        bottom: bottomSafeArea,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSpacing.h16,
+            Visibility(
+              visible: showDragHandle,
+              child: Center(
+                child: Container(
+                  width: AppSizes.s48,
+                  height: AppSizes.s4,
+                  margin: EdgeInsets.only(bottom: AppSizes.s16),
+                  decoration: BoxDecoration(
+                    color: AppColors.pinDotEmpty,
+                    borderRadius: AppRadius.rounded32,
+                  ),
+                ),
+              ),
+            ),
+            Visibility(
+              visible: child != null,
+              replacement: Visibility(
+                visible: expand,
+                replacement: _listView,
+                child: Expanded(child: _listView),
+              ),
+              child: Visibility(
+                visible: expand,
+                replacement: Padding(
+                  padding: padding ?? EdgeInsets.zero,
+                  child: child ?? const SizedBox(),
+                ),
+                child: Expanded(
+                  child: Padding(
+                    padding: padding ?? EdgeInsets.zero,
+                    child: child ?? const SizedBox(),
+                  ),
+                ),
+              ),
+            ),
+            if (usePaddingBottom) context.viewInsetsBottom(AppSizes.s16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget get _listView {
+    return ListView(
+      shrinkWrap: true,
+      controller: controller,
+      padding: padding ?? EdgeInsets.zero,
+      physics: physics ?? ClampingScrollPhysics(),
+      children: children,
+    );
+  }
+}

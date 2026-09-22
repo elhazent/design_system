@@ -1,0 +1,2538 @@
+library;
+
+export 'src/tokens/index.dart';
+export 'src/typography/index.dart';
+export 'src/theme/index.dart';
+export 'src/utils/index.dart';
+export 'src/widgets/index.dart';
+
+//assets
+export 'src/assets/animations/app_animations.dart';
+export 'src/assets/icons/app_icons.dart';
+export 'src/assets/images/app_images.dart';
+export 'src/assets/sounds/app_sounds.dart';
+export 'src/assets/app_assets.dart';
+export './extensions/context_ext.dart';
+export './extensions/date_time_ext.dart';
+export './extensions/num_ext.dart';
+export './helpers/helper.dart';
+export './extensions/string_ext.dart';
+export './extensions/duration_ext.dart';
+import 'dart:ui';
+
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
+
+extension ContextExt on BuildContext {
+  // ===== SCREEN =====
+  MediaQueryData get mediaQuery => MediaQuery.of(this);
+
+  double get screenWidth => mediaQuery.size.width;
+  double get screenHeight => mediaQuery.size.height;
+
+  EdgeInsets get viewInsets => mediaQuery.viewInsets;
+  EdgeInsets get viewPadding => mediaQuery.viewPadding;
+
+  double get paddingTop => mediaQuery.padding.top;
+
+  Orientation get orientation => mediaQuery.orientation;
+
+  bool get isPortrait => orientation == Orientation.portrait;
+  bool get isLandscape => orientation == Orientation.landscape;
+
+  double get devicePixelRatio => mediaQuery.devicePixelRatio;
+
+  double get textScale => PlatformDispatcher.instance.textScaleFactor;
+
+  AppTextTheme get textTheme =>
+      Theme.of(this).extension<AppTextTheme>() ?? AppTextTheme.lightTextTheme;
+
+  void safePop<T extends Object?>([T? result]) {
+    if (Navigator.canPop(this)) {
+      Navigator.pop<T>(this, result);
+    }
+  }
+
+  Widget viewInsetsBottom([double height = AppSizes.zero]) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: viewInsets.bottom),
+      child: SizedBox(height: height),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:intl/intl.dart';
+
+extension DateTimeExt on DateTime? {
+  /// Output: Senin, 01 Januari 2026
+  String get formatEEEEddMMMMy {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('EEEE, dd MMMM y', 'id_ID').format(date);
+  }
+
+  /// Output: 1 Januari 2026 09:10:11
+  String get formatdMMMMyHHmmss {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('d MMMM y HH:mm:ss', 'id_ID').format(date);
+  }
+
+  /// Output: 01 Januari 2026, 09:10
+  String get formatddMMMMyHHmm {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('dd MMMM y, HH:mm', 'id_ID').format(date);
+  }
+
+  /// Output: 01 Januari 2026, 09:10 WIB
+  String get formatddMMMMyHHmmWIB {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('dd MMMM y, HH:mm WIB', 'id_ID').format(date);
+  }
+
+  /// Output: 01/01/26
+  String get formatddMMyy {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('dd/MM/yy', 'id_ID').format(date);
+  }
+
+  /// Output: 09:10
+  String get formatHHmm {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('HH:mm', 'id_ID').format(date);
+  }
+
+  /// Output: 01 Januari 2026
+  String get formatddMMMMy {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('dd MMMM y', 'id_ID').format(date);
+  }
+
+  /// Output: 202601
+  String get formatYearMonth {
+    var date = this;
+    if (date == null) return '-';
+    return '${date.year}${date.month.zeroPadding}';
+  }
+
+  /// Output: Januari 2026
+  String get formatMMMMy {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat('MMMM y', 'id_ID').format(date);
+  }
+
+  String toFormat(String format) {
+    var date = this;
+    if (date == null) return '-';
+    return DateFormat(format, 'id_ID').format(date);
+  }
+
+  String get toDayTimeline {
+    var date = this;
+    if (date == null) return '-';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+    final dateToCheck = DateTime(date.year, date.month, date.day);
+
+    if (dateToCheck == today) return 'Hari Ini';
+    if (dateToCheck == yesterday) return 'Kemarin';
+
+    return date.formatddMMMMy;
+  }
+}
+import 'package:design_system/design_system.dart';
+
+extension DurationExt on Duration {
+  String format([String? format]) {
+    var d = this;
+
+    // We want to round up the remaining time to the nearest second
+    d += const Duration(microseconds: 999999);
+
+    switch (format) {
+      case 'h':
+        return "${d.inHours % 60}";
+      case 'm':
+        return "${d.inMinutes % 60}";
+      case 's':
+        return "${d.inSeconds % 60}";
+      case 'hh':
+        return (d.inHours % 60).zeroPadding;
+      case 'mm':
+        return (d.inMinutes % 60).zeroPadding;
+      case 'ss':
+        return (d.inSeconds % 60).zeroPadding;
+      case 'mm:ss':
+        return "${(d.inMinutes % 60).zeroPadding}:${(d.inSeconds % 60).zeroPadding}";
+      case 'hh:mm':
+        return "${(d.inHours % 60).zeroPadding}:${(d.inMinutes % 60).zeroPadding}";
+      default:
+        return "${(d.inHours % 60).zeroPadding}:${(d.inMinutes % 60).zeroPadding}:${(d.inSeconds % 60).zeroPadding}";
+    }
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:intl/intl.dart';
+
+extension NumExt on num? {
+  static const double _designWidth = 375.0;
+
+  double get _scale {
+    var context = navigatorKey.currentContext;
+    if (context == null) return 1.0;
+    final scale = context.screenWidth / _designWidth;
+    return scale.clamp(0.9, 1.2);
+  }
+
+  double get scaleWidth => (this ?? 0) * _scale;
+
+  double get sp {
+    var context = navigatorKey.currentContext;
+    if (context == null) return (this ?? 0).toDouble();
+    return scaleWidth / context.mediaQuery.textScaler.scale(1);
+  }
+
+  String get zeroPadding {
+    return toString().padLeft(2, '0');
+  }
+
+  String toIDR({String symbol = 'Rp'}) {
+    if (this == null) return '${symbol}0';
+
+    return NumberFormat('$symbol#,###.##', "id_ID").format(this);
+  }
+
+  String toNumericFormat() {
+    if (this == null) return '0';
+    return NumberFormat('#,###.##', 'id_ID').format(this);
+  }
+}
+extension StringExt on String? {
+  bool get isStandardImage {
+    final str = this ?? '';
+    final lowerCasePath = str.toLowerCase();
+
+    return lowerCasePath.endsWith('.png') ||
+        lowerCasePath.endsWith('.jpg') ||
+        lowerCasePath.endsWith('.jpeg') ||
+        lowerCasePath.endsWith('.webp') ||
+        lowerCasePath.endsWith('.gif') ||
+        lowerCasePath.endsWith('.bmp');
+  }
+
+  String get toTitleCase {
+    var str = this ?? '';
+    if (str.trim().isEmpty) return '';
+
+    String textWithSpaces = str.replaceAll('_', ' ');
+
+    return textWithSpaces
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .map((word) {
+          final firstLetterMatch = RegExp(r'[a-zA-Z]').firstMatch(word);
+
+          if (firstLetterMatch == null) return word;
+
+          final index = firstLetterMatch.start;
+
+          return word.substring(0, index) +
+              word[index].toUpperCase() +
+              word.substring(index + 1).toLowerCase();
+        })
+        .join(' ');
+  }
+
+  String get toCamelCase {
+    var str = this ?? '';
+    if (str.trim().isEmpty) return '';
+
+    String cleaned = str.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ' ');
+
+    List<String> words = cleaned
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .toList();
+
+    if (words.isEmpty) return '';
+
+    String result = words.first.toLowerCase();
+
+    for (int i = 1; i < words.length; i++) {
+      String word = words[i];
+      result += word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }
+
+    return result;
+  }
+}
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+import 'package:encrypt/encrypt.dart' as enc;
+
+class AppHelper {
+  static String encryptAES256GCM(String plainText, String keyStr) {
+    final key = enc.Key.fromUtf8(keyStr.padRight(32, '0').substring(0, 32));
+    final iv = enc.IV.fromSecureRandom(12);
+    final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
+    final encrypted = encrypter.encrypt(plainText, iv: iv);
+
+    return '${iv.base64}:${encrypted.base64}';
+  }
+
+  static String decryptAES256GCM(String cipherText, String keyStr) {
+    final parts = cipherText.split(':');
+    if (parts.length != 2) {
+      throw Exception('Format cipher tidak valid. Harus IV:Ciphertext');
+    }
+
+    final iv = enc.IV.fromBase64(parts[0]);
+    final encrypted = enc.Encrypted.fromBase64(parts[1]);
+    final key = enc.Key.fromUtf8(keyStr.padRight(32, '0').substring(0, 32));
+
+    final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
+    return encrypter.decrypt(encrypted, iv: iv);
+  }
+
+  // --- HMAC-SHA256 Signatures ---
+  static String generateHMACSHA256(String payload, String secretKey) {
+    final key = utf8.encode(secretKey);
+    final bytes = utf8.encode(payload);
+
+    final hmacSha256 = Hmac(sha256, key);
+    final digest = hmacSha256.convert(bytes);
+
+    return digest.toString();
+  }
+}
+export 'app_theme.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+abstract class AppTheme {
+  AppTheme._();
+
+  static ThemeData get light => ThemeData(
+    useMaterial3: true,
+    fontFamily: AppFontFamily.primary,
+    scaffoldBackgroundColor: AppColors.background,
+    colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryButton),
+    extensions: <ThemeExtension<dynamic>>[AppTextTheme.lightTextTheme],
+    dividerTheme: DividerThemeData(color: AppColors.border),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded),
+        foregroundColor: AppColors.textOnColorHeading,
+        backgroundColor: AppColors.primaryButton,
+        padding: EdgeInsets.symmetric(
+          vertical: AppSizes.s10,
+          horizontal: AppSizes.s24,
+        ),
+        elevation: 0,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shadowColor: AppColors.transparent,
+        textStyle: AppTextTheme.lightTextTheme.bodyMediumSemiBold,
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded),
+        side: BorderSide(color: AppColors.border.withValues(alpha: .5)),
+        foregroundColor: AppColors.textPrimary,
+        padding: EdgeInsets.symmetric(
+          vertical: AppSizes.s10,
+          horizontal: AppSizes.s24,
+        ),
+        elevation: 0,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: AppTextTheme.lightTextTheme.bodyMediumSemiBold,
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded8),
+        foregroundColor: AppColors.textPrimary,
+        padding: EdgeInsets.symmetric(
+          vertical: AppSizes.s4,
+          horizontal: AppSizes.s8,
+        ),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: AppTextTheme.lightTextTheme.bodyCaptionSemiBold,
+        minimumSize: Size.zero,
+      ),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        iconSize: AppSizes.s24,
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: EdgeInsets.zero,
+      ),
+    ),
+    appBarTheme: AppBarThemeData(
+      centerTitle: false,
+      backgroundColor: AppColors.background,
+      titleTextStyle: AppTextTheme.lightTextTheme.headingSmall,
+      scrolledUnderElevation: 0,
+      titleSpacing: 8,
+      elevation: 0,
+    ),
+    cardTheme: CardThemeData(
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded12),
+    ),
+
+    inputDecorationTheme: InputDecorationThemeData(
+      filled: true,
+      isDense: true,
+      fillColor: AppColors.background,
+      labelStyle: AppTextTheme.lightTextTheme.bodyMedium.copyWith(
+        color: AppColors.textHeading,
+      ),
+
+      floatingLabelBehavior: FloatingLabelBehavior.auto,
+      focusColor: AppColors.primaryButton,
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.border),
+        borderRadius: AppRadius.rounded8,
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.border),
+        borderRadius: AppRadius.rounded8,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.border),
+        borderRadius: AppRadius.rounded8,
+      ),
+    ),
+    textTheme: TextTheme(
+      displayLarge: AppTextTheme.lightTextTheme.headingLarge,
+      displayMedium: AppTextTheme.lightTextTheme.headingMedium,
+      displaySmall: AppTextTheme.lightTextTheme.headingSmall,
+      headlineLarge: AppTextTheme.lightTextTheme.headingLarge,
+      headlineMedium: AppTextTheme.lightTextTheme.headingMedium,
+      headlineSmall: AppTextTheme.lightTextTheme.headingSmall,
+      titleLarge: AppTextTheme.lightTextTheme.titleLarge,
+      titleMedium: AppTextTheme.lightTextTheme.titleMedium,
+      titleSmall: AppTextTheme.lightTextTheme.titleSmall,
+      bodyLarge: AppTextTheme.lightTextTheme.bodyLarge,
+      bodyMedium: AppTextTheme.lightTextTheme.bodyMedium,
+      bodySmall: AppTextTheme.lightTextTheme.bodySmall,
+      labelLarge: AppTextTheme.lightTextTheme.bodyMediumSemiBold,
+      labelMedium: AppTextTheme.lightTextTheme.bodyCaptionMedium,
+      labelSmall: AppTextTheme.lightTextTheme.bodySmallMedium,
+    ),
+    primaryTextTheme: TextTheme(
+      displayLarge: AppTextTheme.lightTextTheme.headingLarge,
+      displayMedium: AppTextTheme.lightTextTheme.headingMedium,
+      displaySmall: AppTextTheme.lightTextTheme.headingSmall,
+      headlineLarge: AppTextTheme.lightTextTheme.headingLarge,
+      headlineMedium: AppTextTheme.lightTextTheme.headingMedium,
+      headlineSmall: AppTextTheme.lightTextTheme.headingSmall,
+      titleLarge: AppTextTheme.lightTextTheme.titleLarge,
+      titleMedium: AppTextTheme.lightTextTheme.titleMedium,
+      titleSmall: AppTextTheme.lightTextTheme.titleSmall,
+      bodyLarge: AppTextTheme.lightTextTheme.bodyLarge,
+      bodyMedium: AppTextTheme.lightTextTheme.bodyMedium,
+      bodySmall: AppTextTheme.lightTextTheme.bodySmall,
+      labelLarge: AppTextTheme.lightTextTheme.bodyMediumSemiBold,
+      labelMedium: AppTextTheme.lightTextTheme.bodyCaptionMedium,
+      labelSmall: AppTextTheme.lightTextTheme.bodySmallMedium,
+    ),
+  );
+}
+export 'app_font_family.dart';
+export 'app_font_line_height.dart';
+export 'app_font_size.dart';
+export 'app_font_style.dart';
+export 'app_font_weight.dart';
+export 'app_text_theme.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppTextTheme extends ThemeExtension<AppTextTheme> {
+  final TextStyle headingLarge;
+  final TextStyle headingMedium;
+  final TextStyle headingSmall;
+  final TextStyle titleLarge;
+  final TextStyle titleMedium;
+  final TextStyle titleSmall;
+  final TextStyle bodyLarge;
+  final TextStyle bodyLargeMedium;
+  final TextStyle bodyLargeSemiBold;
+  final TextStyle bodyMedium;
+  final TextStyle bodyMediumMed;
+  final TextStyle bodyMediumSemiBold;
+  final TextStyle bodyCaption;
+  final TextStyle bodyCaptionMedium;
+  final TextStyle bodyCaptionSemiBold;
+  final TextStyle bodySmall;
+  final TextStyle bodySmallMedium;
+  final TextStyle bodySmallSemiBold;
+
+  const AppTextTheme({
+    required this.headingLarge,
+    required this.headingMedium,
+    required this.headingSmall,
+    required this.titleLarge,
+    required this.titleMedium,
+    required this.titleSmall,
+    required this.bodyLarge,
+    required this.bodyLargeMedium,
+    required this.bodyLargeSemiBold,
+    required this.bodyMedium,
+    required this.bodyMediumMed,
+    required this.bodyMediumSemiBold,
+    required this.bodyCaption,
+    required this.bodyCaptionMedium,
+    required this.bodyCaptionSemiBold,
+    required this.bodySmall,
+    required this.bodySmallMedium,
+    required this.bodySmallSemiBold,
+  });
+
+  static final AppTextTheme lightTextTheme = AppTextTheme(
+    headingLarge: AppFontStyle.headingLarge.copyWith(
+      color: AppColors.textHeading,
+    ),
+    headingMedium: AppFontStyle.headingMedium.copyWith(
+      color: AppColors.textHeading,
+    ),
+    headingSmall: AppFontStyle.headingSmall.copyWith(
+      color: AppColors.textHeading,
+    ),
+    titleLarge: AppFontStyle.titleLarge.copyWith(color: AppColors.textHeading),
+    titleMedium: AppFontStyle.titleMedium.copyWith(
+      color: AppColors.textHeading,
+    ),
+    titleSmall: AppFontStyle.titleSmall.copyWith(color: AppColors.textHeading),
+    bodyLarge: AppFontStyle.bodyLarge.copyWith(color: AppColors.textBody),
+    bodyLargeMedium: AppFontStyle.bodyLargeMedium.copyWith(
+      color: AppColors.textBody,
+    ),
+    bodyLargeSemiBold: AppFontStyle.bodyLargeSemiBold.copyWith(
+      color: AppColors.textHeading,
+    ),
+    bodyMedium: AppFontStyle.bodyMedium.copyWith(color: AppColors.textBody),
+    bodyMediumMed: AppFontStyle.bodyMediumMed.copyWith(
+      color: AppColors.textBody,
+    ),
+    bodyMediumSemiBold: AppFontStyle.bodyMediumSemiBold.copyWith(
+      color: AppColors.textBody,
+    ),
+    bodyCaption: AppFontStyle.bodyCaption.copyWith(
+      color: AppColors.textCaption,
+    ),
+    bodyCaptionMedium: AppFontStyle.bodyCaptionMedium.copyWith(
+      color: AppColors.textCaption,
+    ),
+    bodyCaptionSemiBold: AppFontStyle.bodyCaptionSemiBold.copyWith(
+      color: AppColors.textCaption,
+    ),
+    bodySmall: AppFontStyle.bodySmall.copyWith(color: AppColors.textCaption),
+    bodySmallMedium: AppFontStyle.bodySmallMedium.copyWith(
+      color: AppColors.textCaption,
+    ),
+    bodySmallSemiBold: AppFontStyle.bodySmallSemiBold.copyWith(
+      color: AppColors.textCaption,
+    ),
+  );
+
+  static final AppTextTheme darkTextTheme = AppTextTheme(
+    headingLarge: AppFontStyle.headingLarge.copyWith(
+      color: AppColors.textOnColorHeading,
+    ),
+    headingMedium: AppFontStyle.headingMedium.copyWith(
+      color: AppColors.textOnColorHeading,
+    ),
+    headingSmall: AppFontStyle.headingSmall.copyWith(
+      color: AppColors.textOnColorHeading,
+    ),
+    titleLarge: AppFontStyle.titleLarge.copyWith(
+      color: AppColors.textOnColorHeading,
+    ),
+    titleMedium: AppFontStyle.titleMedium.copyWith(
+      color: AppColors.textOnColorHeading,
+    ),
+    titleSmall: AppFontStyle.titleSmall.copyWith(
+      color: AppColors.textOnColorHeading,
+    ),
+    bodyLarge: AppFontStyle.bodyLarge.copyWith(
+      color: AppColors.textOnColorBody,
+    ),
+    bodyLargeMedium: AppFontStyle.bodyLargeMedium.copyWith(
+      color: AppColors.textOnColorBody,
+    ),
+    bodyLargeSemiBold: AppFontStyle.bodyLargeSemiBold.copyWith(
+      color: AppColors.textOnColorHeading,
+    ),
+    bodyMedium: AppFontStyle.bodyMedium.copyWith(
+      color: AppColors.textOnColorBody,
+    ),
+    bodyMediumMed: AppFontStyle.bodyMediumMed.copyWith(
+      color: AppColors.textOnColorBody,
+    ),
+    bodyMediumSemiBold: AppFontStyle.bodyMediumSemiBold.copyWith(
+      color: AppColors.textOnColorBody,
+    ),
+    bodyCaption: AppFontStyle.bodyCaption.copyWith(
+      color: AppColors.textOnColorCaption,
+    ),
+    bodyCaptionMedium: AppFontStyle.bodyCaptionMedium.copyWith(
+      color: AppColors.textOnColorCaption,
+    ),
+    bodyCaptionSemiBold: AppFontStyle.bodyCaptionSemiBold.copyWith(
+      color: AppColors.textOnColorCaption,
+    ),
+    bodySmall: AppFontStyle.bodySmall.copyWith(
+      color: AppColors.textOnColorCaption,
+    ),
+    bodySmallMedium: AppFontStyle.bodySmallMedium.copyWith(
+      color: AppColors.textOnColorCaption,
+    ),
+    bodySmallSemiBold: AppFontStyle.bodySmallSemiBold.copyWith(
+      color: AppColors.textOnColorCaption,
+    ),
+  );
+
+  @override
+  AppTextTheme copyWith({
+    TextStyle? headingLarge,
+    TextStyle? headingMedium,
+    TextStyle? headingSmall,
+    TextStyle? titleLarge,
+    TextStyle? titleMedium,
+    TextStyle? titleSmall,
+    TextStyle? bodyLarge,
+    TextStyle? bodyLargeMedium,
+    TextStyle? bodyLargeSemiBold,
+    TextStyle? bodyMedium,
+    TextStyle? bodyMediumMed,
+    TextStyle? bodyMediumSemiBold,
+    TextStyle? bodyCaption,
+    TextStyle? bodyCaptionMedium,
+    TextStyle? bodyCaptionSemiBold,
+    TextStyle? bodySmall,
+    TextStyle? bodySmallMedium,
+    TextStyle? bodySmallSemiBold,
+  }) {
+    return AppTextTheme(
+      headingLarge: headingLarge ?? this.headingLarge,
+      headingMedium: headingMedium ?? this.headingMedium,
+      headingSmall: headingSmall ?? this.headingSmall,
+      titleLarge: titleLarge ?? this.titleLarge,
+      titleMedium: titleMedium ?? this.titleMedium,
+      titleSmall: titleSmall ?? this.titleSmall,
+      bodyLarge: bodyLarge ?? this.bodyLarge,
+      bodyLargeMedium: bodyLargeMedium ?? this.bodyLargeMedium,
+      bodyLargeSemiBold: bodyLargeSemiBold ?? this.bodyLargeSemiBold,
+      bodyMedium: bodyMedium ?? this.bodyMedium,
+      bodyMediumMed: bodyMediumMed ?? this.bodyMediumMed,
+      bodyMediumSemiBold: bodyMediumSemiBold ?? this.bodyMediumSemiBold,
+      bodyCaption: bodyCaption ?? this.bodyCaption,
+      bodyCaptionMedium: bodyCaptionMedium ?? this.bodyCaptionMedium,
+      bodyCaptionSemiBold: bodyCaptionSemiBold ?? this.bodyCaptionSemiBold,
+      bodySmall: bodySmall ?? this.bodySmall,
+      bodySmallMedium: bodySmallMedium ?? this.bodySmallMedium,
+      bodySmallSemiBold: bodySmallSemiBold ?? this.bodySmallSemiBold,
+    );
+  }
+
+  @override
+  AppTextTheme lerp(ThemeExtension<AppTextTheme>? other, double t) {
+    if (other is! AppTextTheme) return this;
+    return AppTextTheme(
+      headingLarge: TextStyle.lerp(headingLarge, other.headingLarge, t)!,
+      headingMedium: TextStyle.lerp(headingMedium, other.headingMedium, t)!,
+      headingSmall: TextStyle.lerp(headingSmall, other.headingSmall, t)!,
+      titleLarge: TextStyle.lerp(titleLarge, other.titleLarge, t)!,
+      titleMedium: TextStyle.lerp(titleMedium, other.titleMedium, t)!,
+      titleSmall: TextStyle.lerp(titleSmall, other.titleSmall, t)!,
+      bodyLarge: TextStyle.lerp(bodyLarge, other.bodyLarge, t)!,
+      bodyLargeMedium: TextStyle.lerp(
+        bodyLargeMedium,
+        other.bodyLargeMedium,
+        t,
+      )!,
+      bodyLargeSemiBold: TextStyle.lerp(
+        bodyLargeSemiBold,
+        other.bodyLargeSemiBold,
+        t,
+      )!,
+      bodyMedium: TextStyle.lerp(bodyMedium, other.bodyMedium, t)!,
+      bodyMediumMed: TextStyle.lerp(bodyMediumMed, other.bodyMediumMed, t)!,
+      bodyMediumSemiBold: TextStyle.lerp(
+        bodyMediumSemiBold,
+        other.bodyMediumSemiBold,
+        t,
+      )!,
+      bodyCaption: TextStyle.lerp(bodyCaption, other.bodyCaption, t)!,
+      bodyCaptionMedium: TextStyle.lerp(
+        bodyCaptionMedium,
+        other.bodyCaptionMedium,
+        t,
+      )!,
+      bodyCaptionSemiBold: TextStyle.lerp(
+        bodyCaptionSemiBold,
+        other.bodyCaptionSemiBold,
+        t,
+      )!,
+      bodySmall: TextStyle.lerp(bodySmall, other.bodySmall, t)!,
+      bodySmallMedium: TextStyle.lerp(
+        bodySmallMedium,
+        other.bodySmallMedium,
+        t,
+      )!,
+      bodySmallSemiBold: TextStyle.lerp(
+        bodySmallSemiBold,
+        other.bodySmallSemiBold,
+        t,
+      )!,
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+class AppFontStyle {
+  static const String fontFamily = 'Inter';
+
+  // displays
+  static const TextStyle displayLg = TextStyle(fontFamily: fontFamily, fontSize: 32, fontWeight: FontWeight.w700, height: 40/32, letterSpacing: -0.02);
+  static const TextStyle displayLgMobile = TextStyle(fontFamily: fontFamily, fontSize: 24, fontWeight: FontWeight.w700, height: 32/24, letterSpacing: -0.01);
+  
+  // headings
+  static const TextStyle headingLarge = displayLg;
+  static const TextStyle headingMedium = TextStyle(fontFamily: fontFamily, fontSize: 20, fontWeight: FontWeight.w600, height: 28/20);
+  static const TextStyle headingSmall = TextStyle(fontFamily: fontFamily, fontSize: 18, fontWeight: FontWeight.w600, height: 26/18);
+  
+  // titles (mapped to existing system)
+  static const TextStyle titleLarge = headingMedium;
+  static const TextStyle titleMedium = headingSmall;
+  static const TextStyle titleSmall = TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w600, height: 24/16);
+
+  // body
+  static const TextStyle bodyLarge = TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w400, height: 24/16);
+  static const TextStyle bodyLargeMedium = TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w500, height: 24/16);
+  static const TextStyle bodyLargeSemiBold = TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w600, height: 24/16);
+  
+  static const TextStyle bodyMedium = TextStyle(fontFamily: fontFamily, fontSize: 14, fontWeight: FontWeight.w400, height: 20/14);
+  static const TextStyle bodyMediumMed = TextStyle(fontFamily: fontFamily, fontSize: 14, fontWeight: FontWeight.w500, height: 20/14);
+  static const TextStyle bodyMediumSemiBold = TextStyle(fontFamily: fontFamily, fontSize: 14, fontWeight: FontWeight.w600, height: 20/14);
+
+  static const TextStyle bodySmall = TextStyle(fontFamily: fontFamily, fontSize: 13, fontWeight: FontWeight.w400, height: 18/13);
+  static const TextStyle bodySmallMedium = TextStyle(fontFamily: fontFamily, fontSize: 13, fontWeight: FontWeight.w500, height: 18/13);
+  static const TextStyle bodySmallSemiBold = TextStyle(fontFamily: fontFamily, fontSize: 13, fontWeight: FontWeight.w600, height: 18/13);
+
+  // captions
+  static const TextStyle bodyCaption = TextStyle(fontFamily: fontFamily, fontSize: 11, fontWeight: FontWeight.w600, height: 16/11, letterSpacing: 0.06);
+  static const TextStyle bodyCaptionMedium = bodyCaption;
+  static const TextStyle bodyCaptionSemiBold = bodyCaption;
+}
+abstract class AppFontFamily {
+  AppFontFamily._();
+
+  static const primary = 'Figtree';
+  static const secondary = 'Fustat';
+}
+abstract class AppFontLineHeight {
+  AppFontLineHeight._();
+
+  static const double xxxs = 12.0;
+  static const double xxs = 16.0;
+  static const double xs = 18.0;
+  static const double sm = 20.0;
+  static const double md = 24.0;
+  static const double lg = 28.0;
+  static const double xl = 32.0;
+  static const double xxl = 36.0;
+}
+abstract class AppFontSize {
+  AppFontSize._();
+
+  static const double xxs = 10.0;
+  static const double xs = 12.0;
+  static const double sm = 14.0;
+  static const double md = 16.0;
+  static const double lg = 18.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+}
+import 'package:flutter/material.dart';
+
+abstract class AppFontWeight {
+  AppFontWeight._();
+
+  static const FontWeight regular = FontWeight.w400;
+  static const FontWeight medium = FontWeight.w500;
+  static const FontWeight semibold = FontWeight.w600;
+  static const FontWeight bold = FontWeight.w700;
+}
+// GENERATED CODE - DO NOT MODIFY BY HAND
+abstract class AppImages {
+  AppImages._();
+
+  // Group: PNG
+  static const String imagePlaceholder = 'assets/images/png/image-placeholder.png';
+}
+// GENERATED CODE - DO NOT MODIFY BY HAND
+abstract class AppSounds {
+  AppSounds._();
+}
+// GENERATED CODE - DO NOT MODIFY BY HAND
+abstract class AppIcons {
+  AppIcons._();
+
+  // Group: SVG
+  static const String iconCheckRounded = 'assets/icons/svg/icon-check-rounded.svg';
+  static const String iconChevronLeft = 'assets/icons/svg/icon-chevron-left.svg';
+  static const String iconInfoRounded = 'assets/icons/svg/icon-info-rounded.svg';
+  static const String iconWarning = 'assets/icons/svg/icon-warning.svg';
+}
+// GENERATED CODE - DO NOT MODIFY BY HAND
+import 'animations/app_animations.dart';
+import 'icons/app_icons.dart';
+import 'images/app_images.dart';
+import 'sounds/app_sounds.dart';
+
+abstract class AppAssets {
+  AppAssets._();
+
+  static const _basePath = 'packages/design_system';
+
+  // --- AppIcons Mapping ---
+  static const iconCheckRounded = '$_basePath/${AppIcons.iconCheckRounded}';
+  static const iconChevronLeft = '$_basePath/${AppIcons.iconChevronLeft}';
+  static const iconInfoRounded = '$_basePath/${AppIcons.iconInfoRounded}';
+  static const iconWarning = '$_basePath/${AppIcons.iconWarning}';
+
+  // --- AppImages Mapping ---
+  static const imagePlaceholder = '$_basePath/${AppImages.imagePlaceholder}';
+
+  // --- AppAnimations Mapping ---
+  static const animationLoading = '$_basePath/${AppAnimations.animationLoading}';
+
+  // --- AppSounds Mapping ---
+
+}
+// GENERATED CODE - DO NOT MODIFY BY HAND
+abstract class AppAnimations {
+  AppAnimations._();
+
+  // Group: LOTTIE
+  static const String animationLoading = 'assets/animations/lottie/animation-loading.json';
+}
+export 'app_radius.dart';
+export 'app_sizes.dart';
+export 'app_spacing.dart';
+
+export './colors/app_pallete.dart';
+export './colors/app_colors.dart';
+abstract class AppSizes {
+  AppSizes._();
+
+  static const double zero = 0.0;
+  static const double s2 = 2.0;
+  static const double s4 = 4.0;
+  static const double s6 = 6.0;
+  static const double s8 = 8.0;
+  static const double s10 = 10.0;
+  static const double s11 = 11.0;
+  static const double s12 = 12.0;
+  static const double s14 = 14.0;
+  static const double s16 = 16.0;
+  static const double s18 = 18.0;
+  static const double s20 = 20.0;
+  static const double s22 = 22.0;
+  static const double s24 = 24.0;
+  static const double s32 = 32.0;
+  static const double s36 = 36.0;
+  static const double s40 = 40.0;
+  static const double s42 = 42.0;
+  static const double s44 = 44.0;
+  static const double s48 = 48.0;
+  static const double s50 = 50.0;
+  static const double s56 = 56.0;
+  static const double s60 = 60.0;
+  static const double s64 = 64.0;
+  static const double s66 = 66.0;
+  static const double s80 = 80.0;
+  static const double s94 = 94.0;
+  static const double s100 = 100.0;
+  static const double s110 = 110.0;
+  static const double s120 = 120.0;
+  static const double s150 = 150.0;
+  static const double s156 = 156.0;
+  static const double s160 = 160.0;
+  static const double s168 = 168.0;
+  static const double s184 = 184.0;
+  static const double s200 = 200.0;
+  static const double s220 = 220.0;
+  static const double s224 = 224.0;
+}
+import 'package:flutter/material.dart';
+
+import 'app_pallete.dart';
+
+class AppColors {
+  AppColors._();
+
+  // Background & Surfaces
+  static const Color background = AppPallete.background;
+  static const Color surface = AppPallete.surfaceContainerLowest;
+  static const Color surfaceDim = AppPallete.surfaceDim;
+  static const Color surfaceVariant = AppPallete.surfaceVariant;
+  static const Color canvas = AppPallete.neutralCanvas;
+  static const Color transparent = Colors.transparent;
+  static const Color white = Colors.white;
+  static const Color black = Colors.black;
+
+  // Texts
+  static const Color textHeading = AppPallete.textHeading;
+  static const Color textBody = AppPallete.textBody;
+  static const Color textCaption = AppPallete.textCaption;
+
+  static const Color textPrimary = AppPallete.onSurface;
+  static const Color textSecondary = AppPallete.onSurfaceVariant;
+  static const Color textInverse = AppPallete.inverseOnSurface;
+
+  static const Color textOnColorHeading = AppPallete.neutralSurface;
+  static const Color textOnColorBody = AppPallete.neutralSurface;
+  static const Color textOnColorCaption = AppPallete.surfaceContainerLow;
+
+  // Borders
+  static const Color border = AppPallete.neutralBorder;
+  static const Color outline = AppPallete.outline;
+
+  // Buttons / Actions
+  static const Color primaryButton = AppPallete.brandPrimary;
+  static const Color secondaryButton = AppPallete.brandSecondary;
+  static const Color onPrimaryButton = AppPallete.onPrimary;
+  static const Color onSecondaryButton = AppPallete.onSecondary;
+
+  // Interactive & Form States
+  static const Color focusedBorder = AppPallete.brandPrimary;
+  static const Color pinDotEmpty = AppPallete.pinEmpty;
+  static const Color pinDotFilled = AppPallete.brandPrimary;
+
+  // Identity Card (KTP)
+  static const Color ktpSurface = AppPallete.brandTertiary;
+  static const Color ktpStroke = AppPallete.ktpStroke;
+
+  // Semantics / Validation
+  static const Color verifiedBg = AppPallete.semanticSuccessBg;
+  static const Color verifiedFg = AppPallete.semanticSuccess;
+  static const Color warning = AppPallete.semanticWarning;
+  static const Color error = AppPallete.semanticError;
+}
+import 'package:flutter/material.dart';
+
+abstract class AppPallete {
+  AppPallete._();
+
+  static const Color surface = Color(0xFFFAF8FF);
+  static const Color surfaceDim = Color(0xFFD2D9F4);
+  static const Color surfaceBright = Color(0xFFFAF8FF);
+  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
+  static const Color surfaceContainerLow = Color(0xFFF2F3FF);
+  static const Color surfaceContainer = Color(0xFFEAEDFF);
+  static const Color surfaceContainerHigh = Color(0xFFE2E7FF);
+  static const Color surfaceContainerHighest = Color(0xFFDAE2FD);
+  
+  static const Color onSurface = Color(0xFF131B2E);
+  static const Color onSurfaceVariant = Color(0xFF41474D);
+  static const Color inverseSurface = Color(0xFF283044);
+  static const Color inverseOnSurface = Color(0xFFEEF0FF);
+  
+  static const Color outline = Color(0xFF72787E);
+  static const Color outlineVariant = Color(0xFFC1C7CE);
+  
+  static const Color surfaceTint = Color(0xFF356382);
+  
+  static const Color primary = Color(0xFF114563);
+  static const Color onPrimary = Color(0xFFFFFFFF);
+  static const Color primaryContainer = Color(0xFF2F5D7C);
+  static const Color onPrimaryContainer = Color(0xFFA8D5F9);
+  static const Color inversePrimary = Color(0xFF9FCCEF);
+  
+  static const Color secondary = Color(0xFFAD3400);
+  static const Color onSecondary = Color(0xFFFFFFFF);
+  static const Color secondaryContainer = Color(0xFFFC6B39);
+  static const Color onSecondaryContainer = Color(0xFF5E1800);
+  
+  static const Color tertiary = Color(0xFF33444E);
+  static const Color onTertiary = Color(0xFFFFFFFF);
+  static const Color tertiaryContainer = Color(0xFF4A5B66);
+  static const Color onTertiaryContainer = Color(0xFFC0D2DF);
+  
+  static const Color error = Color(0xFFBA1A1A);
+  static const Color onError = Color(0xFFFFFFFF);
+  static const Color errorContainer = Color(0xFFFFDAD6);
+  static const Color onErrorContainer = Color(0xFF93000A);
+  
+  static const Color primaryFixed = Color(0xFFC9E6FF);
+  static const Color primaryFixedDim = Color(0xFF9FCCEF);
+  static const Color onPrimaryFixed = Color(0xFF001E2F);
+  static const Color onPrimaryFixedVariant = Color(0xFF194B69);
+  
+  static const Color secondaryFixed = Color(0xFFFFDBD0);
+  static const Color secondaryFixedDim = Color(0xFFFFB59D);
+  static const Color onSecondaryFixed = Color(0xFF390B00);
+  static const Color onSecondaryFixedVariant = Color(0xFF842500);
+  
+  static const Color tertiaryFixed = Color(0xFFD3E5F2);
+  static const Color tertiaryFixedDim = Color(0xFFB7C9D6);
+  static const Color onTertiaryFixed = Color(0xFF0C1D27);
+  static const Color onTertiaryFixedVariant = Color(0xFF384954);
+  
+  static const Color background = Color(0xFFFAF8FF);
+  static const Color onBackground = Color(0xFF131B2E);
+  static const Color surfaceVariant = Color(0xFFDAE2FD);
+
+  // Semantics KTP & Neutrals from DESIGN.md text body
+  static const Color brandPrimary = Color(0xFF2F5D7C);
+  static const Color brandSecondary = Color(0xFFC84615);
+  static const Color brandTertiary = Color(0xFF1A2B35);
+  
+  static const Color neutralBackground = Color(0xFFF8FAFC);
+  static const Color neutralCanvas = Color(0xFFF3F5F7);
+  static const Color neutralSurface = Color(0xFFFFFFFF);
+  static const Color neutralBorder = Color(0xFFE2E8F0);
+  
+  static const Color textHeading = Color(0xFF0F172A);
+  static const Color textBody = Color(0xFF1E293B);
+  static const Color textCaption = Color(0xFF64748B);
+  
+  static const Color semanticSuccess = Color(0xFF16A34A);
+  static const Color semanticSuccessBg = Color(0xFFDCFCE7);
+  static const Color semanticWarning = Color(0xFFD97706);
+  static const Color semanticError = Color(0xFFDC2626);
+  
+  static const Color pinEmpty = Color(0xFFCBD5E1);
+  static const Color ktpStroke = Color(0xFF334155);
+}
+class DsSpacing {
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 16.0;
+  static const double lg = 24.0;
+  static const double xl = 32.0;
+  static const double xxl = 40.0;
+  
+  static const double radiusSm = 4.0;
+  static const double radiusMd = 8.0;
+  static const double radiusLg = 16.0;
+  static const double radiusXl = 24.0;
+  static const double radiusPill = 9999.0;
+}
+import 'package:flutter/material.dart';
+
+import 'app_sizes.dart';
+
+abstract class AppSpacing {
+  AppSpacing._();
+
+  static Widget zero = const SizedBox();
+
+  // Width Spacing (Row)
+  static Widget w2 = const SizedBox(width: AppSizes.s2);
+  static Widget w4 = const SizedBox(width: AppSizes.s4);
+  static Widget w8 = const SizedBox(width: AppSizes.s8);
+  static Widget w10 = const SizedBox(width: AppSizes.s10);
+  static Widget w12 = const SizedBox(width: AppSizes.s12);
+  static Widget w16 = const SizedBox(width: AppSizes.s16);
+  static Widget w20 = const SizedBox(width: AppSizes.s20);
+  static Widget w24 = const SizedBox(width: AppSizes.s24);
+  static Widget w32 = const SizedBox(width: AppSizes.s32);
+
+  // Height Spacing (Column)
+  static Widget h2 = const SizedBox(height: AppSizes.s2);
+  static Widget h4 = const SizedBox(height: AppSizes.s4);
+  static Widget h8 = const SizedBox(height: AppSizes.s8);
+  static Widget h10 = const SizedBox(height: AppSizes.s10);
+  static Widget h12 = const SizedBox(height: AppSizes.s12);
+  static Widget h16 = const SizedBox(height: AppSizes.s16);
+  static Widget h20 = const SizedBox(height: AppSizes.s20);
+  static Widget h24 = const SizedBox(height: AppSizes.s24);
+  static Widget h32 = const SizedBox(height: AppSizes.s32);
+
+  // Sliver Spacing (Column)
+  static Widget sliverSpacing12 = SliverToBoxAdapter(child: AppSpacing.h12);
+  static Widget sliverSpacing16 = SliverToBoxAdapter(child: AppSpacing.h16);
+}
+import 'package:flutter/material.dart';
+
+abstract class AppRadius {
+  AppRadius._();
+
+  static const double xxs = 4;
+  static const double xs = 8;
+  static const double sm = 12;
+  static const double md = 16;
+  static const double lg = 24;
+  static const double xl = 32;
+  static const double xxl = 48;
+  static const double full = 100;
+
+  static BorderRadius get zero => BorderRadius.zero;
+  static BorderRadius get rounded4 => BorderRadius.circular(xxs);
+  static BorderRadius get rounded8 => BorderRadius.circular(xs);
+  static BorderRadius get rounded12 => BorderRadius.circular(sm);
+  static BorderRadius get rounded16 => BorderRadius.circular(md);
+  static BorderRadius get rounded24 => BorderRadius.circular(lg);
+  static BorderRadius get rounded32 => BorderRadius.circular(xl);
+  static BorderRadius get rounded48 => BorderRadius.circular(xxl);
+  static BorderRadius get rounded => BorderRadius.circular(full);
+}
+export './fields/field_label.dart';
+export './fields//labeled_text_form_field.dart';
+export './cards/box_card.dart';
+export './cards/circle_card.dart';
+export './inputs/checkbox.dart';
+export './buttons/back_button.dart';
+export './images/error_image.dart';
+export './images/local_image.dart';
+export './images/network_image.dart';
+export './indicators/loading_indicator.dart';
+export './indicators/refresh_indicator.dart';
+export './sheets/sheet_container.dart';
+export './layouts/general_page.dart';
+export './snackbars/index.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppSheetContainer extends StatelessWidget {
+  final Widget? child;
+  final double? height;
+  final List<Widget> children;
+  final ScrollController? controller;
+  final EdgeInsetsGeometry? padding;
+  final BorderRadiusGeometry? borderRadius;
+  final bool showDragHandle, expand, bottomSafeArea, usePaddingBottom;
+  final ScrollPhysics? physics;
+  final Color? color;
+
+  const AppSheetContainer({
+    super.key,
+    this.child,
+    this.height,
+    this.padding,
+    this.controller,
+    this.children = const [],
+    this.showDragHandle = true,
+    this.expand = false,
+    this.physics,
+    this.color,
+    this.bottomSafeArea = true,
+    this.usePaddingBottom = true,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      decoration: BoxDecoration(color: color ?? AppColors.background),
+      child: SafeArea(
+        top: false,
+        bottom: bottomSafeArea,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSpacing.h16,
+            Visibility(
+              visible: showDragHandle,
+              child: Center(
+                child: Container(
+                  width: AppSizes.s48,
+                  height: AppSizes.s4,
+                  margin: EdgeInsets.only(bottom: AppSizes.s16),
+                  decoration: BoxDecoration(
+                    color: AppColors.pinDotEmpty,
+                    borderRadius: AppRadius.rounded32,
+                  ),
+                ),
+              ),
+            ),
+            Visibility(
+              visible: child != null,
+              replacement: Visibility(
+                visible: expand,
+                replacement: _listView,
+                child: Expanded(child: _listView),
+              ),
+              child: Visibility(
+                visible: expand,
+                replacement: Padding(
+                  padding: padding ?? EdgeInsets.zero,
+                  child: child ?? const SizedBox(),
+                ),
+                child: Expanded(
+                  child: Padding(
+                    padding: padding ?? EdgeInsets.zero,
+                    child: child ?? const SizedBox(),
+                  ),
+                ),
+              ),
+            ),
+            if (usePaddingBottom) context.viewInsetsBottom(AppSizes.s16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget get _listView {
+    return ListView(
+      shrinkWrap: true,
+      controller: controller,
+      padding: padding ?? EdgeInsets.zero,
+      physics: physics ?? ClampingScrollPhysics(),
+      children: children,
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+class AppBackButton extends StatelessWidget {
+  final Color? color;
+  final String? icon;
+  final VoidCallback? onPressed;
+
+  const AppBackButton({super.key, this.color, this.icon, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed ?? () => context.safePop(),
+      icon: SvgPicture.asset(
+        icon ?? AppAssets.iconChevronLeft,
+        width: AppSizes.s24,
+        height: AppSizes.s24,
+        colorFilter: color != null
+            ? ColorFilter.mode(color ?? AppColors.black, BlendMode.srcIn)
+            : null,
+      ),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
+
+class AppImage extends StatelessWidget {
+  final String asset;
+  final double? width, height, size;
+  final Color? color;
+  final BoxFit? fit;
+  final bool? animate, repeat, reverse;
+  final BorderRadius? borderRadius;
+
+  const AppImage({
+    super.key,
+    required this.asset,
+    this.width,
+    this.height,
+    this.size = AppSizes.s24,
+    this.color,
+    this.fit,
+    this.animate,
+    this.repeat,
+    this.reverse,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: borderRadius ?? AppRadius.zero,
+      child: Visibility(
+        visible: asset.contains('json'),
+        replacement: Visibility(
+          visible: asset.contains('svg'),
+          replacement: Image.asset(
+            asset,
+            width: width ?? size,
+            height: height ?? size,
+            color: color,
+            fit: fit,
+          ),
+          child: SvgPicture.asset(
+            asset,
+            width: width ?? size,
+            height: height ?? size,
+            fit: fit ?? BoxFit.contain,
+            colorFilter: color != null
+                ? ColorFilter.mode(
+                    color ?? AppColors.primaryButton,
+                    BlendMode.srcIn,
+                  )
+                : null,
+          ),
+        ),
+        child: Lottie.asset(
+          asset,
+          width: width ?? size,
+          height: height ?? size,
+          fit: fit,
+          repeat: repeat,
+          reverse: reverse,
+          animate: animate,
+        ),
+      ),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppErrorImage extends StatelessWidget {
+  final String? asset;
+  final double? width, height, size;
+  final EdgeInsetsGeometry? margin, padding;
+  final BorderRadius? borderRadius;
+  final BoxFit? fit;
+
+  const AppErrorImage({
+    super.key,
+    this.asset,
+    this.width,
+    this.height,
+    this.size = AppSizes.s48,
+    this.margin,
+    this.padding,
+    this.borderRadius,
+    this.fit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width ?? size,
+      height: height ?? size,
+      margin: margin,
+      padding: padding,
+      decoration: BoxDecoration(borderRadius: borderRadius ?? AppRadius.zero),
+      child: AppImage(
+        asset: asset ?? AppAssets.imagePlaceholder,
+        width: width ?? size,
+        height: height ?? size,
+        fit: fit,
+      ),
+    );
+  }
+}
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppNetworkImage extends StatelessWidget {
+  final String? url, errorImage;
+  final double? width, height, size;
+  final EdgeInsetsGeometry margin, padding, errorMargin, errorPadding;
+  final BorderRadius borderRadius;
+  final Color backgroundColor;
+  final VoidCallback? onTap;
+  final BoxFit fit;
+  final Color? color;
+  final Alignment alignment;
+  final Widget? errorWidget;
+
+  const AppNetworkImage({
+    super.key,
+    this.url,
+    this.width,
+    this.height,
+    this.size,
+    this.margin = EdgeInsets.zero,
+    this.padding = EdgeInsets.zero,
+    this.errorMargin = EdgeInsets.zero,
+    this.errorPadding = EdgeInsets.zero,
+    this.borderRadius = BorderRadius.zero,
+    this.backgroundColor = AppColors.transparent,
+    this.fit = BoxFit.fill,
+    this.errorImage,
+    this.onTap,
+    this.color,
+    this.alignment = Alignment.center,
+    this.errorWidget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var imageUrl = url ?? '';
+
+    return AppBoxCard(
+      onTap: onTap,
+      width: width ?? size,
+      height: height ?? size,
+      margin: margin,
+      padding: padding,
+      borderRadius: borderRadius,
+      color: backgroundColor,
+      child: Visibility(
+        visible: imageUrl.isNotEmpty,
+        replacement:
+            errorWidget ??
+            AppErrorImage(
+              asset: errorImage,
+              width: width,
+              height: height,
+              size: size,
+              borderRadius: borderRadius,
+              margin: errorMargin,
+              padding: errorPadding,
+            ),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            width: width ?? size,
+            color: color,
+            height: height ?? size,
+            alignment: alignment,
+            fit: fit,
+            placeholder: (context, _) {
+              return const Center(child: AppLoadingIndicator());
+            },
+            errorWidget: (context, _, _) {
+              return errorWidget ??
+                  AppErrorImage(
+                    asset: errorImage,
+                    width: width,
+                    height: height,
+                    size: size,
+                    fit: fit,
+                    borderRadius: borderRadius,
+                    margin: errorMargin,
+                    padding: errorPadding,
+                  );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+enum AppSnackBarType { success, error, info, warning }
+
+enum AppSnackBarPosition { top, bottom }
+
+class AppSnackBar {
+  static void show({
+    String? msg,
+    String? description,
+    AppSnackBarType? type,
+    AppSnackBarPosition? position,
+    VoidCallback? onTap,
+    String? actionText,
+    double? height,
+  }) {
+    var context = navigatorKey.currentContext;
+    if (context != null && msg != null) {
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        snackBar(
+          context: context,
+          message: msg,
+          description: description,
+          type: type,
+          position: position,
+          onTap: onTap,
+          actionText: actionText,
+          height: height,
+        ),
+      );
+    }
+  }
+
+  static void hide() {
+    var context = navigatorKey.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    }
+  }
+
+  static SnackBar snackBar({
+    required BuildContext context,
+    required String message,
+    String? description,
+    AppSnackBarType? type,
+    AppSnackBarPosition? position,
+    VoidCallback? onTap,
+    String? actionText,
+    double? height,
+  }) {
+    if (height == null) {
+      if (onTap != null) {
+        height = AppSizes.s64;
+      } else if (description != null) {
+        height = AppSizes.s36;
+      } else {
+        height = AppSizes.s24;
+      }
+    }
+
+    var paddingBottom =
+        context.screenHeight - kToolbarHeight - context.paddingTop - height;
+
+    switch (type) {
+      case AppSnackBarType.success:
+        return SnackBar(
+          duration: Duration(seconds: 3),
+          margin: EdgeInsets.fromLTRB(
+            AppSizes.s16,
+            AppSizes.zero,
+            AppSizes.s16,
+            position == AppSnackBarPosition.top ? paddingBottom : AppSizes.s32,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.verifiedFg,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded12),
+          content: Row(
+            spacing: AppSizes.s12,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppImage(
+                asset: AppAssets.iconCheckRounded,
+                color: AppColors.verifiedFg,
+                width: AppSizes.s20,
+              ),
+              Expanded(
+                child: Column(
+                  spacing: AppSizes.s2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      style: context.textTheme.bodyMediumSemiBold.copyWith(
+                        color: AppColors.textOnColorHeading,
+                      ),
+                    ),
+                    Visibility(
+                      visible: description != null,
+                      child: Text(
+                        description ?? '-',
+                        style: context.textTheme.bodyCaption.copyWith(
+                          color: AppColors.textOnColorBody,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: onTap != null,
+                      child: InkWell(
+                        onTap: onTap,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSizes.s8,
+                          ),
+                          child: Text(
+                            actionText ?? 'OK',
+                            style: context.textTheme.bodyCaptionSemiBold
+                                .copyWith(color: AppColors.textOnColorHeading),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: hide,
+                child: Icon(
+                  Icons.close,
+                  color: AppColors.black,
+                  size: AppSizes.s16,
+                ),
+              ),
+            ],
+          ),
+        );
+      case AppSnackBarType.error:
+        return SnackBar(
+          duration: Duration(seconds: 3),
+          margin: EdgeInsets.fromLTRB(
+            AppSizes.s16,
+            AppSizes.zero,
+            AppSizes.s16,
+            position == AppSnackBarPosition.top ? paddingBottom : AppSizes.s32,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded12),
+          content: Row(
+            spacing: AppSizes.s12,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppImage(
+                asset: AppAssets.iconInfoRounded,
+                color: AppColors.error,
+                width: AppSizes.s20,
+              ),
+              Expanded(
+                child: Column(
+                  spacing: AppSizes.s2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      style: context.textTheme.bodyMediumSemiBold.copyWith(
+                        color: AppColors.textOnColorHeading,
+                      ),
+                    ),
+                    Visibility(
+                      visible: description != null,
+                      child: Text(
+                        description ?? '-',
+                        style: context.textTheme.bodyCaption.copyWith(
+                          color: AppColors.textOnColorBody,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: onTap != null,
+                      child: InkWell(
+                        onTap: onTap,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSizes.s8,
+                          ),
+                          child: Text(
+                            actionText ?? 'OK',
+                            style: context.textTheme.bodyCaptionSemiBold
+                                .copyWith(color: AppColors.textOnColorHeading),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: hide,
+                child: Icon(
+                  Icons.close,
+                  color: AppColors.black,
+                  size: AppSizes.s16,
+                ),
+              ),
+            ],
+          ),
+        );
+      case AppSnackBarType.info:
+        return SnackBar(
+          duration: Duration(seconds: 3),
+          margin: EdgeInsets.fromLTRB(
+            AppSizes.s16,
+            AppSizes.zero,
+            AppSizes.s16,
+            position == AppSnackBarPosition.top ? paddingBottom : AppSizes.s32,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.black,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded12),
+          content: Row(
+            spacing: AppSizes.s12,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppImage(
+                asset: AppAssets.iconInfoRounded,
+                color: AppColors.white,
+                width: AppSizes.s20,
+              ),
+              Expanded(
+                child: Column(
+                  spacing: AppSizes.s2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      style: context.textTheme.bodyMediumSemiBold.copyWith(
+                        color: AppColors.textOnColorHeading,
+                      ),
+                    ),
+                    Visibility(
+                      visible: description != null,
+                      child: Text(
+                        description ?? '-',
+                        style: context.textTheme.bodyCaption.copyWith(
+                          color: AppColors.textOnColorBody,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: onTap != null,
+                      child: InkWell(
+                        onTap: onTap,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSizes.s8,
+                          ),
+                          child: Text(
+                            actionText ?? 'OK',
+                            style: context.textTheme.bodyCaptionSemiBold
+                                .copyWith(color: AppColors.textOnColorHeading),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: hide,
+                child: Icon(
+                  Icons.close,
+                  color: AppColors.white,
+                  size: AppSizes.s16,
+                ),
+              ),
+            ],
+          ),
+        );
+      case AppSnackBarType.warning:
+        return SnackBar(
+          duration: Duration(seconds: 3),
+          margin: EdgeInsets.fromLTRB(
+            AppSizes.s16,
+            AppSizes.zero,
+            AppSizes.s16,
+            position == AppSnackBarPosition.top ? paddingBottom : AppSizes.s32,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.warning,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded12),
+          content: Row(
+            spacing: AppSizes.s12,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppImage(
+                asset: AppAssets.iconWarning,
+                color: AppColors.black,
+                width: AppSizes.s20,
+              ),
+              Expanded(
+                child: Column(
+                  spacing: AppSizes.s2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      style: context.textTheme.bodyMediumSemiBold.copyWith(
+                        color: AppColors.textOnColorHeading,
+                      ),
+                    ),
+                    Visibility(
+                      visible: description != null,
+                      child: Text(
+                        description ?? '-',
+                        style: context.textTheme.bodyCaption.copyWith(
+                          color: AppColors.textOnColorBody,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: onTap != null,
+                      child: InkWell(
+                        onTap: onTap,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSizes.s8,
+                          ),
+                          child: Text(
+                            actionText ?? 'OK',
+                            style: context.textTheme.bodyCaptionSemiBold
+                                .copyWith(color: AppColors.textOnColorHeading),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: hide,
+                child: Icon(
+                  Icons.close,
+                  color: AppColors.white,
+                  size: AppSizes.s16,
+                ),
+              ),
+            ],
+          ),
+        );
+      default:
+        return SnackBar(
+          duration: Duration(seconds: 3),
+          margin: EdgeInsets.fromLTRB(
+            AppSizes.s16,
+            AppSizes.zero,
+            AppSizes.s16,
+            AppSizes.s32,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.black,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rounded12),
+          content: Row(
+            spacing: AppSizes.s12,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppImage(
+                asset: AppAssets.iconCheckRounded,
+                color: AppColors.white,
+                width: AppSizes.s20,
+              ),
+              Expanded(
+                child: Column(
+                  spacing: AppSizes.s2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      style: context.textTheme.bodyMediumSemiBold.copyWith(
+                        color: AppColors.textOnColorHeading,
+                      ),
+                    ),
+                    Visibility(
+                      visible: description != null,
+                      child: Text(
+                        description ?? '-',
+                        style: context.textTheme.bodyCaption.copyWith(
+                          color: AppColors.textOnColorBody,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: onTap != null,
+                      child: InkWell(
+                        onTap: onTap,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSizes.s8,
+                          ),
+                          child: Text(
+                            actionText ?? 'OK',
+                            style: context.textTheme.bodyCaptionSemiBold
+                                .copyWith(color: AppColors.textOnColorHeading),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: hide,
+                child: Icon(
+                  Icons.close,
+                  color: AppColors.white,
+                  size: AppSizes.s16,
+                ),
+              ),
+            ],
+          ),
+        );
+    }
+  }
+}
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+class AppRefreshIndicator extends StatelessWidget {
+  final Future<void> Function() onRefresh;
+  final bool transform;
+  final Widget child;
+
+  const AppRefreshIndicator({
+    super.key,
+    required this.onRefresh,
+    required this.child,
+    this.transform = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomRefreshIndicator(
+      onRefresh: onRefresh,
+      builder: (context, child, controller) {
+        return AnimatedBuilder(
+          animation: controller,
+          builder: (context, _) {
+            var paddingTop = AppSizes.s24;
+
+            return Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                if (!transform) child,
+                if (controller.isLoading || controller.value > 0)
+                  Positioned(
+                    top: paddingTop * controller.value,
+                    child: AppCircleCard(
+                      elevation: AppSizes.s2,
+                      borderColor: AppColors.border,
+                      child: AppImage(
+                        asset: AppAssets.animationLoading,
+                        animate: controller.isLoading,
+                        size: AppSizes.s32,
+                      ),
+                    ),
+                  ),
+                Visibility(
+                  visible: transform,
+                  child: Transform.translate(
+                    offset: Offset(0, (paddingTop * 3) * controller.value),
+                    child: child,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: child,
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/widgets.dart';
+
+class AppLoadingIndicator extends StatelessWidget {
+  final double size;
+  final EdgeInsetsGeometry padding;
+
+  const AppLoadingIndicator({
+    super.key,
+    this.size = AppSizes.s24,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: AppImage(asset: AppAssets.animationLoading, size: size),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppCircleCard extends StatelessWidget {
+  final double size, elevation;
+  final Color color, borderColor;
+  final EdgeInsetsGeometry? padding;
+  final Widget? child;
+
+  const AppCircleCard({
+    super.key,
+    this.elevation = AppSizes.zero,
+    this.size = AppSizes.s40,
+    this.color = AppColors.white,
+    this.borderColor = AppColors.transparent,
+    this.padding,
+    this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Material(
+        color: color,
+        elevation: elevation,
+        shape: CircleBorder(side: BorderSide(color: borderColor)),
+        child: Container(
+          padding: padding ?? EdgeInsets.all(AppSizes.s4),
+          alignment: Alignment.center,
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppBoxCard extends StatelessWidget {
+  final double? width, height;
+  final EdgeInsetsGeometry? padding, margin;
+  final BorderRadiusGeometry? borderRadius;
+  final List<BoxShadow>? boxShadow;
+  final Gradient? gradient;
+  final BoxBorder? border;
+  final String? asset;
+  final Color? color;
+  final Widget child;
+  final VoidCallback? onTap;
+  final BoxFit? boxFit;
+
+  const AppBoxCard({
+    super.key,
+    this.width,
+    this.height,
+    this.padding,
+    this.margin,
+    this.borderRadius,
+    this.boxShadow,
+    this.gradient,
+    this.border,
+    this.asset,
+    this.color,
+    required this.child,
+    this.onTap,
+    this.boxFit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        height: height,
+        padding: padding ?? EdgeInsets.all(AppSizes.s12),
+        margin: margin,
+        decoration: BoxDecoration(
+          image: asset != null
+              ? DecorationImage(
+                  image: AssetImage(asset!),
+                  fit: boxFit ?? BoxFit.fill,
+                )
+              : null,
+          borderRadius: borderRadius ?? AppRadius.rounded12,
+          color: color ?? AppColors.background,
+          boxShadow: boxShadow,
+          gradient: gradient,
+          border: border,
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppGeneralPage extends StatelessWidget {
+  final VoidCallback? onBackPressed;
+  final EdgeInsetsGeometry? padding;
+  final List<Widget>? children, actionsAppBar;
+  final Widget child;
+  final Widget? leadingAppBar,
+      titleAppBar,
+      floatingActionButton,
+      persistentSheet,
+      flexibleSpace;
+  final PreferredSizeWidget? bottomAppBar;
+  final Future<void> Function()? onRefresh;
+  final String? backgroundImage, backgroundNetworkImage, title, backButtonIcon;
+  final Color? backgroundColor, appBarColor, backButtonColor, titleColor;
+  final double? initialChildSize,
+      minChildSize,
+      maxChildSize,
+      paddingTop,
+      backgroundImageHeight,
+      titleSpacing;
+  final bool extendBodyBehindAppBar,
+      automaticallyImplyLeading,
+      showDragHandle,
+      isLoadingMore,
+      isScrollable,
+      useSafeArea,
+      topSafeArea;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
+  final ScrollPhysics? physics;
+  final ScrollController? scrollController;
+  final bool? bottomSafeArea, leftSafeArea, rightSafeArea;
+
+  const AppGeneralPage({
+    super.key,
+    this.title,
+    this.padding,
+    this.extendBodyBehindAppBar = false,
+    this.backgroundImage,
+    this.backgroundNetworkImage,
+    this.children,
+    this.child = const SizedBox(),
+    this.persistentSheet,
+    this.backgroundColor,
+    this.appBarColor,
+    this.titleColor,
+    this.backButtonColor,
+    this.onRefresh,
+    this.onBackPressed,
+    this.leadingAppBar,
+    this.titleAppBar,
+    this.bottomAppBar,
+    this.actionsAppBar,
+    this.automaticallyImplyLeading = true,
+    this.initialChildSize,
+    this.minChildSize,
+    this.maxChildSize,
+    this.showDragHandle = false,
+    this.physics,
+    this.paddingTop,
+    this.backgroundImageHeight,
+    this.titleSpacing,
+    this.scrollController,
+    this.isLoadingMore = false,
+    this.useSafeArea = true,
+    this.topSafeArea = false,
+    this.bottomSafeArea,
+    this.leftSafeArea,
+    this.rightSafeArea,
+    this.isScrollable = true,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
+    this.backButtonIcon,
+    this.flexibleSpace,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: extendBodyBehindAppBar,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        titleSpacing: titleSpacing,
+        leading:
+            leadingAppBar ??
+            (automaticallyImplyLeading
+                ? AppBackButton(
+                    color: backButtonColor,
+                    icon: backButtonIcon,
+                    onPressed: onBackPressed,
+                  )
+                : null),
+        backgroundColor: appBarColor,
+        title: titleAppBar ?? Text(title ?? ''),
+        titleTextStyle: context.textTheme.headingSmall.copyWith(
+          color: titleColor,
+        ),
+        bottom: bottomAppBar,
+        actions: actionsAppBar,
+        flexibleSpace: flexibleSpace,
+      ),
+      backgroundColor: backgroundColor,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
+      body: Stack(
+        children: [
+          Visibility(
+            visible: backgroundNetworkImage != null,
+            replacement: Visibility(
+              visible: backgroundImage != null,
+              child: AppImage(
+                asset: backgroundImage ?? '',
+                width: double.infinity,
+                height: backgroundImageHeight,
+                fit: BoxFit.fill,
+                size: null,
+              ),
+            ),
+            child: AppNetworkImage(
+              url: backgroundNetworkImage,
+              width: double.infinity,
+              height: backgroundImageHeight,
+              errorImage: backgroundImage,
+              fit: BoxFit.fill,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              top:
+                  paddingTop ??
+                  (extendBodyBehindAppBar
+                      ? context.paddingTop + kToolbarHeight
+                      : 0),
+            ),
+            child: Visibility(
+              visible: onRefresh != null,
+              replacement: SafeArea(
+                top: topSafeArea,
+                bottom: bottomSafeArea ?? useSafeArea,
+                left: leftSafeArea ?? useSafeArea,
+                right: rightSafeArea ?? useSafeArea,
+                child: _content,
+              ),
+              child: AppRefreshIndicator(
+                onRefresh: onRefresh != null ? onRefresh! : () async {},
+                child: SafeArea(
+                  top: topSafeArea,
+                  bottom: bottomSafeArea ?? useSafeArea,
+                  left: leftSafeArea ?? useSafeArea,
+                  right: rightSafeArea ?? useSafeArea,
+                  child: _content,
+                ),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: children != null,
+            child: DraggableScrollableSheet(
+              initialChildSize: initialChildSize ?? 0.2,
+              minChildSize: minChildSize ?? 0.2,
+              maxChildSize: maxChildSize ?? 0.88,
+              builder: (context, scrollController) {
+                return AppSheetContainer(
+                  expand: true,
+                  physics: physics,
+                  padding:
+                      padding ?? EdgeInsets.symmetric(horizontal: AppSizes.s16),
+                  showDragHandle: showDragHandle,
+                  controller: scrollController,
+                  children: children ?? [],
+                );
+              },
+            ),
+          ),
+          if (persistentSheet != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                top: topSafeArea,
+                bottom: bottomSafeArea ?? useSafeArea,
+                left: leftSafeArea ?? useSafeArea,
+                right: rightSafeArea ?? useSafeArea,
+                child: persistentSheet!,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget get _content {
+    if (!isScrollable) {
+      return Padding(
+        padding: padding ?? EdgeInsets.all(AppSizes.s16),
+        child: child,
+      );
+    }
+    return ListView(
+      controller: scrollController,
+      padding:
+          padding ??
+          EdgeInsets.only(
+            top: AppSizes.s16,
+            right: AppSizes.s16,
+            left: AppSizes.s16,
+            bottom: persistentSheet != null ? AppSizes.s120 : AppSizes.s16,
+          ),
+      physics: physics ?? AlwaysScrollableScrollPhysics(),
+      children: [
+        child,
+        if (isLoadingMore)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSizes.s16),
+            child: Center(child: AppLoadingIndicator(size: AppSizes.s40)),
+          ),
+      ],
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppFieldLabel extends StatelessWidget {
+  final String label;
+  final bool required;
+  final TextStyle? style;
+
+  const AppFieldLabel({
+    super.key,
+    required this.label,
+    this.required = false,
+    this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle =
+        style ??
+        context.textTheme.bodyMediumMed.copyWith(color: AppColors.textHeading);
+
+    return RichText(
+      text: TextSpan(
+        style: textStyle,
+        children: [
+          TextSpan(text: label),
+          if (required)
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(color: AppColors.error),
+            ),
+        ],
+      ),
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class AppLabeledTextFormField extends StatelessWidget {
+  final TextEditingController? controller;
+  final String label;
+  final bool required;
+  final String? hintText;
+  final bool readOnly;
+  final bool? enableInteractiveSelection;
+  final bool? canRequestFocus;
+  final EditableTextContextMenuBuilder? contextMenuBuilder;
+  final int maxLines;
+  final int? minLines;
+  final int? maxLength;
+  final String? prefixText;
+  final String? counterText;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final TextCapitalization? textCapitalization;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? Function(String?)? validator;
+  final VoidCallback? onTap;
+  final void Function(String?)? onSaved;
+  final Widget? suffixIcon;
+  final BoxConstraints? suffixIconConstraints;
+  final Widget? prefixIcon;
+  final BoxConstraints? prefixIconConstraints;
+  final void Function(String)? onChanged;
+  final Widget? suffixLabelIcon;
+  final FocusNode? focusNode;
+  final Color? fillColor;
+  final Widget? suffixLabel;
+  final InputBorder? border;
+  final String? initialValue;
+  final Widget? actionWidget;
+  final double? actionWidgetSpace;
+  final TextStyle? style;
+  final TextStyle? labelStyle, hintStyle, errorStyle, helperStyle;
+  final int? errorMaxLines;
+  final String? helperText;
+
+  const AppLabeledTextFormField({
+    super.key,
+    this.controller,
+    required this.label,
+    this.labelStyle,
+    this.hintStyle,
+    this.onChanged,
+    this.required = false,
+    this.hintText,
+    this.readOnly = false,
+    this.enableInteractiveSelection,
+    this.canRequestFocus,
+    this.contextMenuBuilder,
+    this.maxLines = 1,
+    this.maxLength,
+    this.minLines,
+    this.prefixText,
+    this.keyboardType,
+    this.inputFormatters,
+    this.validator,
+    this.onTap,
+    this.suffixIcon,
+    this.textInputAction,
+    this.textCapitalization,
+    this.counterText,
+    this.suffixIconConstraints,
+    this.prefixIcon,
+    this.prefixIconConstraints,
+    this.suffixLabelIcon,
+    this.focusNode,
+    this.fillColor,
+    this.onSaved,
+    this.suffixLabel,
+    this.border,
+    this.initialValue,
+    this.actionWidget,
+    this.actionWidgetSpace,
+    this.style,
+    this.errorStyle,
+    this.errorMaxLines,
+    this.helperText,
+    this.helperStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                AppFieldLabel(
+                  label: label,
+                  required: required,
+                  style: labelStyle,
+                ),
+                if (suffixLabelIcon != null) ...[
+                  AppSpacing.w4,
+                  suffixLabelIcon ?? SizedBox(),
+                ],
+              ],
+            ),
+            suffixLabel ?? SizedBox(),
+          ],
+        ),
+        AppSpacing.h8,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: controller,
+                readOnly: readOnly,
+                enableInteractiveSelection:
+                    enableInteractiveSelection ?? !readOnly,
+                canRequestFocus: canRequestFocus ?? !readOnly,
+                contextMenuBuilder:
+                    contextMenuBuilder ??
+                    (readOnly && enableInteractiveSelection != true
+                        ? (context, editableTextState) =>
+                              const SizedBox.shrink()
+                        : null),
+                style: style,
+                maxLines: maxLines,
+                minLines: minLines,
+                initialValue: initialValue,
+                maxLength: maxLength,
+                keyboardType: keyboardType,
+                textInputAction: textInputAction,
+                textCapitalization:
+                    textCapitalization ?? TextCapitalization.none,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                inputFormatters: inputFormatters,
+                validator: validator,
+                onTap: onTap,
+                onChanged: onChanged,
+                focusNode: focusNode,
+                onSaved: onSaved,
+                decoration: InputDecoration(
+                  errorMaxLines: errorMaxLines ?? 3,
+                  errorStyle: errorStyle,
+                  helperText: helperText,
+                  helperStyle:
+                      helperStyle ??
+                      AppTextTheme.lightTextTheme.bodyCaption.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                  hintText: hintText,
+                  hintStyle: hintStyle,
+                  suffixIcon: suffixIcon,
+                  prefixIcon: prefixIcon,
+                  prefixIconConstraints: prefixIconConstraints,
+                  prefix: prefixText != null ? Text(prefixText!) : null,
+                  filled: true,
+                  counterText: counterText,
+                  fillColor: fillColor,
+                  suffixIconConstraints: suffixIconConstraints,
+                  contentPadding: EdgeInsets.all(AppSizes.s12),
+                  border:
+                      border ??
+                      OutlineInputBorder(
+                        borderRadius: AppRadius.rounded8,
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                  enabledBorder:
+                      border ??
+                      OutlineInputBorder(
+                        borderRadius: AppRadius.rounded8,
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                  focusedBorder:
+                      border ??
+                      OutlineInputBorder(
+                        borderRadius: AppRadius.rounded8,
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryButton,
+                        ),
+                      ),
+                  errorBorder:
+                      border ??
+                      OutlineInputBorder(
+                        borderRadius: AppRadius.rounded8,
+                        borderSide: const BorderSide(color: AppColors.error),
+                      ),
+                  focusedErrorBorder:
+                      border ??
+                      OutlineInputBorder(
+                        borderRadius: AppRadius.rounded8,
+                        borderSide: const BorderSide(color: AppColors.error),
+                      ),
+                ),
+              ),
+            ),
+            ...(actionWidget != null
+                ? [SizedBox(width: actionWidgetSpace), actionWidget!]
+                : []),
+          ],
+        ),
+      ],
+    );
+  }
+}
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppCheckbox extends StatelessWidget {
+  final bool? value;
+  final ValueChanged<bool?>? onChanged;
+  final Color? activeColor;
+  final double size;
+  final double borderWidth;
+  final double borderRadius;
+  final bool tristate;
+
+  const AppCheckbox({
+    super.key,
+    this.value = false,
+    this.onChanged,
+    this.activeColor,
+    this.size = AppSizes.s16,
+    this.borderWidth = 1,
+    this.borderRadius = AppSizes.s4,
+    this.tristate = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Checkbox(
+        activeColor: activeColor ?? AppColors.primaryButton,
+        splashRadius: AppSizes.s4,
+        tristate: tristate,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        side: BorderSide(color: AppColors.border, width: borderWidth),
+        value: value,
+        onChanged: onChanged,
+      ),
+    );
+  }
+}

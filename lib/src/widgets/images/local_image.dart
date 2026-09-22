@@ -1,0 +1,68 @@
+import 'package:design_system/design_system.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
+
+class AppImage extends StatelessWidget {
+  final String asset;
+  final double? width, height, size;
+  final Color? color;
+  final BoxFit? fit;
+  final bool? animate, repeat, reverse;
+  final BorderRadius? borderRadius;
+
+  const AppImage({
+    super.key,
+    required this.asset,
+    this.width,
+    this.height,
+    this.size = AppSizes.s24,
+    this.color,
+    this.fit,
+    this.animate,
+    this.repeat,
+    this.reverse,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: borderRadius ?? AppRadius.zero,
+      child: Visibility(
+        visible: asset.contains('json'),
+        replacement: Visibility(
+          visible: asset.contains('svg'),
+          replacement: Image.asset(
+            asset,
+            width: width ?? size,
+            height: height ?? size,
+            color: color,
+            fit: fit,
+          ),
+          child: SvgPicture.asset(
+            asset,
+            width: width ?? size,
+            height: height ?? size,
+            fit: fit ?? BoxFit.contain,
+            colorFilter: color != null
+                ? ColorFilter.mode(
+                    color ?? AppColors.primaryButton,
+                    BlendMode.srcIn,
+                  )
+                : null,
+          ),
+        ),
+        child: Lottie.asset(
+          asset,
+          width: width ?? size,
+          height: height ?? size,
+          fit: fit,
+          repeat: repeat,
+          reverse: reverse,
+          animate: animate,
+        ),
+      ),
+    );
+  }
+}

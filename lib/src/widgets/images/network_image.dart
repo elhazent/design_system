@@ -1,0 +1,92 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+class AppNetworkImage extends StatelessWidget {
+  final String? url, errorImage;
+  final double? width, height, size;
+  final EdgeInsetsGeometry margin, padding, errorMargin, errorPadding;
+  final BorderRadius borderRadius;
+  final Color backgroundColor;
+  final VoidCallback? onTap;
+  final BoxFit fit;
+  final Color? color;
+  final Alignment alignment;
+  final Widget? errorWidget;
+
+  const AppNetworkImage({
+    super.key,
+    this.url,
+    this.width,
+    this.height,
+    this.size,
+    this.margin = EdgeInsets.zero,
+    this.padding = EdgeInsets.zero,
+    this.errorMargin = EdgeInsets.zero,
+    this.errorPadding = EdgeInsets.zero,
+    this.borderRadius = BorderRadius.zero,
+    this.backgroundColor = AppColors.transparent,
+    this.fit = BoxFit.fill,
+    this.errorImage,
+    this.onTap,
+    this.color,
+    this.alignment = Alignment.center,
+    this.errorWidget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var imageUrl = url ?? '';
+
+    return AppBoxCard(
+      onTap: onTap,
+      width: width ?? size,
+      height: height ?? size,
+      margin: margin,
+      padding: padding,
+      borderRadius: borderRadius,
+      color: backgroundColor,
+      child: Visibility(
+        visible: imageUrl.isNotEmpty,
+        replacement:
+            errorWidget ??
+            AppErrorImage(
+              asset: errorImage,
+              width: width,
+              height: height,
+              size: size,
+              borderRadius: borderRadius,
+              margin: errorMargin,
+              padding: errorPadding,
+            ),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            width: width ?? size,
+            color: color,
+            height: height ?? size,
+            alignment: alignment,
+            fit: fit,
+            placeholder: (context, _) {
+              return const Center(child: AppLoadingIndicator());
+            },
+            errorWidget: (context, _, _) {
+              return errorWidget ??
+                  AppErrorImage(
+                    asset: errorImage,
+                    width: width,
+                    height: height,
+                    size: size,
+                    fit: fit,
+                    borderRadius: borderRadius,
+                    margin: errorMargin,
+                    padding: errorPadding,
+                  );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
